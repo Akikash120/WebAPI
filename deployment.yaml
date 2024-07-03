@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapplication1
+  labels:
+    app: webapplication1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webapplication1
+  template:
+    metadata:
+      labels:
+        app: webapplication1
+    spec:
+      containers:
+      - name: webapplication1
+        image: appserve.azurecr.io/webapplication1.git:209
+        ports:
+        - containerPort: 8080
+        - containerPort: 8081
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: "/"
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: "/"
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapplication1-service
+spec:
+  selector:
+    app: webapplication1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
+
